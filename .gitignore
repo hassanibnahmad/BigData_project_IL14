@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Downloaded and generated data
+data/gtfs/*
+!data/gtfs/.gitkeep
+data/samples/*
+!data/samples/.gitkeep
+output/
+
+# Local services
+postgres_data/
+minio_data/
+airflow/logs/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
