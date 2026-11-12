@@ -1,0 +1,11 @@
+{
+  "event_id": "mbta-y1898-20261110T221532Z",
+  "source": "MBTA",
+  "vehicle_id": "y1898",
+  "route_id": "1",
+  "trip_id": "78182009",
+  "latitude": 42.343594,
+  "longitude": -71.086029,
+  "vehicle_timestamp": "2026-11-10T22:15:32Z",
+  "ingested_at": "2026-11-10T22:15:37Z"
+}
