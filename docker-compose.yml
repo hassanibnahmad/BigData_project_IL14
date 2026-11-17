@@ -5,7 +5,8 @@ services:
     hostname: kafka
 
     ports:
-      - "9092:9092"
+      - "127.0.0.1:9092:9092"
+      - "100.105.157.123:39092:39092"
 
     environment:
       KAFKA_NODE_ID: 1
@@ -13,18 +14,21 @@ services:
 
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
 
-      KAFKA_LISTENERS: >
+      KAFKA_LISTENERS: >-
         INTERNAL://0.0.0.0:29092,
-        EXTERNAL://0.0.0.0:9092,
+        LOCAL://0.0.0.0:9092,
+        REMOTE://0.0.0.0:39092,
         CONTROLLER://0.0.0.0:9093
 
-      KAFKA_ADVERTISED_LISTENERS: >
+      KAFKA_ADVERTISED_LISTENERS: >-
         INTERNAL://kafka:29092,
-        EXTERNAL://localhost:9092
+        LOCAL://localhost:9092,
+        REMOTE://100.105.157.123:39092
 
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
         INTERNAL:PLAINTEXT,
-        EXTERNAL:PLAINTEXT,
+        LOCAL:PLAINTEXT,
+        REMOTE:PLAINTEXT,
         CONTROLLER:PLAINTEXT
 
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
@@ -36,8 +40,10 @@ services:
 
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
 
+      KAFKA_LOG_DIRS: /tmp/kafka-logs
+
     volumes:
-      - kafka_data:/var/lib/kafka/data
+      - kafka_data:/tmp/kafka-logs
 
     networks:
       - il14-network
