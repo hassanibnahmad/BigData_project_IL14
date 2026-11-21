@@ -10,11 +10,10 @@ from pathlib import Path
 
 from kafka import KafkaProducer
 from kafka.admin import KafkaAdminClient, NewTopic
-from kafka.errors import UnknownTopicOrPartitionError
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BROKER = "localhost:9092"
+BROKER = os.getenv("KAFKA_TEST_BOOTSTRAP_SERVERS", "127.0.0.1:9092")
 
 EXAMPLE_PATH = (
     ROOT / "contracts" / "vehicle_position.example.json"
@@ -157,9 +156,4 @@ def test_consumer_rejects_invalid_event():
         if producer is not None:
             producer.close()
 
-        try:
-            admin.delete_topics([topic])
-        except UnknownTopicOrPartitionError:
-            pass
-        finally:
-            admin.close()
+        admin.close()

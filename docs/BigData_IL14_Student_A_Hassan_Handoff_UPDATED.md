@@ -2,18 +2,30 @@
 
 **Project:** Real-Time Public Transport Monitoring  
 **Contributor:** Student A — Hassan Ibnahmad  
-**Scope:** Data acquisition / Kafka ingestion (Sections 1 and 2), event contract, validation consumer, and integration testing  
-**Status:** Kafka ingestion implementation demonstrated; 12 integration/contract tests passed on 15 November 2026 in the original local configuration. Subsequent Docker listener changes require a fresh complete test run.
-**Network update:** 17 November 2026 — Tailscale Kafka access verified from Student A's own Windows PC; teammate-PC connectivity remains unverified.  
-**Audience:** Spark, Lakehouse, ML, Dashboard, Airflow and integration team members
+**Scope:** MBTA vehicle positions, stop predictions and scheduled stop times, Kafka publication and reference validation.
 
-> **Scope note.** This handoff documents the implementation discussed and tested in our work, the supplied event schema and consumer source, and the project's task distribution. The complete current producer source and Docker Compose file were not available for direct inspection when this handoff was prepared. Producer internals and exact commands should be cross-checked with the repository before deployment. The broader GTFS-driven simulator required by the initial task specification is not demonstrated by the Kafka test results; the working ingestion source is MBTA live vehicle positions.
+**Audience:** Spark, Lakehouse, ML, Dashboard, Airflow and integration team members.
+
+## Stop-time handoff for Student B
+
+Use the [current setup and contract guide](../README.md) and [implementation report](STUDENT_A_IMPLEMENTATION_REPORT.md) for run commands, current evidence and the three topic schemas. The vehicle-focused sections below preserve historical project context.
+
+The two additional topics are `predictions_arrets` and `horaires_theoriques`, with three partitions and one replica each. Join on MBTA `schedule_id` and confirmed `service_date`. Check `route_id`, `trip_id`, `stop_id` and `stop_sequence` before comparing timestamps. A null service date indicates that the producer could not establish a unique match to the schedules it loaded.
+
+From Student B's PowerShell terminal after installing the project requirements, run:
+
+```powershell
+$env:KAFKA_BOOTSTRAP_SERVERS = '100.105.157.123:39092'
+.\.venv\Scripts\python.exe -m kafka_ingestion.verify_stop_times --vehicles
+```
+
+This verifies Kafka access from the PC running the command and validates the retained events. Use `127.0.0.1:9092` on the Windows broker host. The Tailscale path from Student B's PC still needs verification.
 
 ## 1. Executive summary
 
-Student A implemented the upstream ingestion layer that converts MBTA vehicle-position data into standardized JSON events and publishes them to Apache Kafka. The working pipeline uses a Python producer to fetch, normalize, validate, deduplicate and publish data; a separate Python consumer validates events against a JSON Schema, logs valid vehicle positions, and commits offsets manually. Kafka runs in Docker with internal, Windows-local, and Tailscale listeners. The Tailscale endpoint `100.105.157.123:39092` was verified from Student A's Windows PC. The Windows-local `localhost:9092` listener is currently not working for `kafka-python`, despite successful TCP checks. The primary Kafka topic is `positions_vehicules`, configured with three partitions. A separate topic `positions_vehicules_test` is used for integration tests; other tests create temporary isolated topics.
+Student A implemented the upstream ingestion layer that converts MBTA vehicle-position data into standardized JSON events and publishes them to Apache Kafka. The working pipeline uses a Python producer to fetch, normalize, validate, deduplicate and publish data; a separate Python consumer validates events against a JSON Schema, logs valid vehicle positions, and commits offsets manually. Kafka runs in Docker with internal, Windows-local, and Tailscale listeners. The Tailscale endpoint `100.105.157.123:39092` was verified from Student A's Windows PC. The Windows-local listener now advertises `127.0.0.1:9092` to match the IPv4 Docker binding. The primary Kafka topic is `positions_vehicules`, configured with three partitions. Kafka integration tests create isolated topics and retain them.
 
-**Verified result:** The final supplied pytest execution reported **12 passed in 11.65 seconds**. This verifies tested Kafka publication/consumption, schema rules, actual consumer rejection/acceptance, key-based partition consistency, in-partition ordering, explicit commits and restart from committed offsets. It does not by itself verify end-to-end Spark, Hudi, MinIO, Airflow, Grafana, or a complete GTFS-based simulation.
+**Historical result (15 November 2026):** The previously supplied pytest execution reported **12 passed in 11.65 seconds**. This verifies tested Kafka publication/consumption, schema rules, actual consumer rejection/acceptance, key-based partition consistency, in-partition ordering, explicit commits and restart from committed offsets. It does not by itself verify end-to-end Spark, Hudi, MinIO, Airflow, Grafana, or a complete GTFS-based simulation.
 
 ## 2. Student A's functional responsibilities
 
@@ -87,7 +99,7 @@ This tree reflects the working filenames used in the test sessions. The actual s
 
 | Setting | Value / meaning |
 |---|---|
-| Local Windows broker | `localhost:9092` (configured; **Python Kafka handshake currently failing**) |
+| Local Windows broker | `127.0.0.1:9092` (Windows host) |
 | Docker-network broker | `kafka:29092` (Kafka CLI verified from container) |
 | Tailscale broker | `100.105.157.123:39092` (**Python Kafka consumer verified on Student A's PC**) |
 | Local host binding | `127.0.0.1:9092` |
@@ -111,8 +123,8 @@ This tree reflects the working filenames used in the test sessions. The actual s
 
 ```powershell
 docker ps
-docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list
-docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic positions_vehicules
+docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --list
+docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --describe --topic positions_vehicules
 .\.venv\Scripts\python.exe -m pytest tests/integration/ -v
 ```
 
@@ -178,7 +190,7 @@ The consumer loads `.env` with `python-dotenv`, reads the JSON Schema from `cont
 **Environment variables:**
 
 ```dotenv
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092  # historical/default; currently fails in Windows Python; use verified Tailscale address for temporary host tests
+KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092
 KAFKA_TOPIC=positions_vehicules
 KAFKA_CONSUMER_GROUP=il14-python-consumer
 KAFKA_AUTO_OFFSET_RESET=earliest
@@ -257,7 +269,7 @@ INFO | Summary | Processed=... | Invalid=...
 
 **Student D — ML and Grafana:** Expect position events only at this interface. ML features and dashboard measures such as delays and punctuality must be derived downstream and should not be inferred directly from latitude/longitude.
 
-**Shared integration / Airflow:** Agree on Docker network hostnames. `localhost:9092` is configured for Python on the host but was failing in the latest tests; a containerized Spark job needs a broker address reachable from its own container network and matching Kafka advertised listeners. Coordinate service versions, retention, consumer group names, topic ownership and startup order.
+**Shared integration / Airflow:** Agree on Docker network hostnames. `127.0.0.1:9092` is the verified Windows host address; a containerized Spark job needs a broker address reachable from its own container network and matching Kafka advertised listeners. Coordinate service versions, retention, consumer group names, topic ownership and startup order.
 
 **Contract ownership:** The team distribution document states that a nominated contract owner maintains shared contracts, with other section owners validating changes. Treat any field rename, schema extension, source expansion or timestamp semantic change as a coordinated, versioned change.
 
@@ -281,7 +293,7 @@ INFO | Summary | Processed=... | Invalid=...
 - [x] Kafka key partitioning and ordering tested.
 - [x] Consumer schema validation and manual offset behavior tested.
 - [x] Original local test suite: 12/12 passed (before networking changes).
-- [ ] Re-run full suite successfully after listener changes; latest reported Kafka-dependent tests failed on `localhost:9092`.
+- [x] Re-run the full suite with the IPv4 listener. See the implementation report for results.
 - [ ] Verify code and documentation are pushed to the shared Git repository.
 - [ ] Agree whether MBTA live data replaces or complements the requested GTFS simulator.
 - [ ] Confirm route/trip ID compatibility with the GTFS dataset.
@@ -306,8 +318,8 @@ This handoff was prepared from: (a) the supplied `BigData.pdf` IL-14 work breakd
 | Client location | Bootstrap server | Verified status |
 |---|---|---|
 | Inside `il14-kafka` / same Docker network | `kafka:29092` | Kafka broker API versions command succeeded |
-| Student A Windows Python, local | `localhost:9092` | **Not working** with `kafka-python` as of latest test (`NoBrokersAvailable`); raw TCP connection succeeded |
-| Student A Windows Python, via Tailscale | `100.105.157.123:39092` | **Working**; `KafkaConsumer.topics()` returned both expected topics |
+| Student A Windows Python, local | `127.0.0.1:9092` | Topic metadata and Kafka integration tests passed |
+| Student A Windows Python, via Tailscale | `100.105.157.123:39092` | Python Kafka metadata returned all three ingestion topics |
 | Student B/C machine on same Tailscale network | `100.105.157.123:39092` | **Not tested yet**; requires Tailscale membership, access policy, firewall and actual Kafka consumer test |
 
 **Observed host port mappings:**
@@ -319,14 +331,14 @@ This handoff was prepared from: (a) the supplied `BigData.pdf` IL-14 work breakd
 **Observed broker environment:**
 ```text
 KAFKA_LISTENERS=INTERNAL://0.0.0.0:29092, LOCAL://0.0.0.0:9092, REMOTE://0.0.0.0:39092, CONTROLLER://0.0.0.0:9093
-KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:29092, LOCAL://localhost:9092, REMOTE://100.105.157.123:39092
+KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:29092, LOCAL://127.0.0.1:9092, REMOTE://100.105.157.123:39092
 KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT, LOCAL:PLAINTEXT, REMOTE:PLAINTEXT, CONTROLLER:PLAINTEXT
 KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
 KAFKA_LOG_DIRS=/tmp/kafka-logs
 KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
 ```
 
-The actual Docker Compose file was not independently re-inspected for this update; the environment values above were copied from Student A's observed running container. The Kafka image is `apache/kafka:3.9.1`. The volume should be mounted to `/tmp/kafka-logs`, which is the active log directory. **Do not run `docker compose down -v`**, as it deletes named volumes and stored Kafka data.
+These listener settings are taken from the current Docker Compose file. The Kafka image is `apache/kafka:3.9.1`. The volume should be mounted to `/tmp/kafka-logs`, which is the active log directory. **Do not run `docker compose down -v`**, as it deletes named volumes and stored Kafka data.
 
 ### 15.2 Student A — quick checks on Windows PowerShell
 
@@ -335,17 +347,17 @@ From the project root with `.venv` installed:
 ```powershell
 docker ps
 docker port il14-kafka
-docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list
-docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic positions_vehicules
+docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --list
+docker exec il14-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --describe --topic positions_vehicules
 .\.venv\Scripts\python.exe -c "from kafka import KafkaConsumer; c=KafkaConsumer(bootstrap_servers='100.105.157.123:39092', request_timeout_ms=15000); print('Connected to Kafka:', c.topics()); c.close()"
 ```
 
-**Actual successful Python output:**
+**Historical successful Python output from the vehicle-only setup:**
 ```text
 Connected to Kafka: {'positions_vehicules', 'positions_vehicules_test'}
 ```
 
-The above confirms broker connectivity and topic discovery, **not** that fresh vehicle events are being produced or that a teammate can consume them.
+The command checks broker metadata. The current end-to-end evidence is in the [implementation report](STUDENT_A_IMPLEMENTATION_REPORT.md).
 
 ### 15.3 Student B/C — remote access prerequisites and commands
 
@@ -424,11 +436,9 @@ Use the shared `contracts/vehicle_position.schema.json` to define the structured
 
 ### 15.5 Known issues and remaining acceptance tests
 
-- **Windows LOCAL listener remains unresolved:** `127.0.0.1:9092` passed `Test-NetConnection`, but `KafkaAdminClient` raised `NodeNotReadyError` and `KafkaConsumer(bootstrap_servers='localhost:9092')` raised `NoBrokersAvailable`. Do not claim local Python tests are currently green.
-- **Tests after network changes:** a later 12-test run reportedly had **2 failed, 6 passed, 4 errors**, with Kafka-dependent failures. The earlier 12/12 passing result remains historical evidence of the original configuration.
-- **Avoid editing only `.env` and assuming tests are fixed:** some integration tests hardcode `localhost:9092`. Either repair the local listener or deliberately parameterize test broker addresses and rerun all tests.
-- **Tailscale access:** successful Python connectivity on Student A's own PC is **not** proof of connectivity from Student B's PC. Test from that PC.
-- **Persistence:** both topics were recreated after an earlier container recreation; confirm the active volume is mounted at `/tmp/kafka-logs`, then verify persistence across a normal restart without deleting the volume.
+- **Windows loopback:** The old `localhost:9092` advertisement led the Python client to IPv6 while Docker bound IPv4. Use `127.0.0.1:9092`. Integration tests allow explicit broker selection through `KAFKA_TEST_BOOTSTRAP_SERVERS`.
+- **Tailscale access:** Student A verified the Tailscale address from the broker host. Run the verifier from Student B's PC to confirm remote connectivity.
+- **Persistence:** Existing topics and their data persisted across the Compose recreation on 21 November 2026.
 - **Security:** Kafka listeners currently use PLAINTEXT and have no demonstrated SASL/TLS authentication. Restrict access to trusted tailnet members with Tailscale policy and Windows firewall. Do **not** expose port 39092 on the public internet.
 - **Source fidelity:** this handoff documents the observed MBTA live-data pipeline, not a fully demonstrated GTFS simulator. Consult the original assignment before treating the source substitution as approved.
 

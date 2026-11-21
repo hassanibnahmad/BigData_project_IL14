@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MBTA Stop Schedule Event",
+  "type": "object",
+  "required": [
+    "event_id",
+    "source",
+    "schedule_id",
+    "service_date",
+    "route_id",
+    "trip_id",
+    "stop_id",
+    "stop_sequence",
+    "scheduled_arrival",
+    "scheduled_departure",
+    "ingested_at"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source": {
+      "const": "MBTA"
+    },
+    "schedule_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "route_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trip_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scheduled_arrival": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "scheduled_departure": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,5 +1,6 @@
 """Step 6.5: Kafka partition consistency and per-partition ordering."""
 import json
+import os
 import time
 import uuid
 
@@ -7,7 +8,7 @@ import pytest
 from kafka import KafkaConsumer, KafkaProducer, TopicPartition
 from kafka.admin import KafkaAdminClient, NewTopic
 
-BROKER = "localhost:9092"
+BROKER = os.getenv("KAFKA_TEST_BOOTSTRAP_SERVERS", "127.0.0.1:9092")
 
 
 @pytest.fixture
@@ -18,10 +19,7 @@ def kafka_topic():
         admin.create_topics([NewTopic(name=name, num_partitions=3, replication_factor=1)])
         yield name
     finally:
-        try:
-            admin.delete_topics([name])
-        finally:
-            admin.close()
+        admin.close()
 
 
 def make_producer():

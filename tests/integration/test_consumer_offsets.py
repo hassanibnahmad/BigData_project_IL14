@@ -1,5 +1,6 @@
 """Step 6.6: Kafka consumer offsets, restart, and delivery tests."""
 import json
+import os
 import time
 import uuid
 
@@ -8,7 +9,7 @@ from kafka import KafkaConsumer, KafkaProducer, TopicPartition
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.structs import OffsetAndMetadata
 
-BROKER = "localhost:9092"
+BROKER = os.getenv("KAFKA_TEST_BOOTSTRAP_SERVERS", "127.0.0.1:9092")
 
 
 @pytest.fixture
@@ -19,10 +20,7 @@ def kafka_topic():
         admin.create_topics([NewTopic(name=name, num_partitions=1, replication_factor=1)])
         yield name
     finally:
-        try:
-            admin.delete_topics([name])
-        finally:
-            admin.close()
+        admin.close()
 
 
 def publish_events(topic, count):
@@ -94,3 +92,11 @@ def test_restart_resumes_from_committed_offset(kafka_topic):
         first.close()
 
     publish_events(kafka_topic, 1)  # This new record has sequence 0.
+    second = make_consumer(group)
+    try:
+        second.assign([tp])
+        resumed = read_n(second, 1)
+        assert resumed[0].offset == initial[-1].offset + 1
+        assert resumed[0].value == {"sequence": 0}
+    finally:
+        second.close()

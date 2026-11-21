@@ -1,11 +1,13 @@
 #this file is an integration test that verifies the end-to-end functionality of producing and consuming vehicle position events using Kafka. It performs the following steps:
 import json
+import os
 import time
 import uuid
 from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
 from kafka import KafkaConsumer, KafkaProducer
+from kafka.admin import KafkaAdminClient, NewTopic
 
 
 # ============================================================
@@ -22,8 +24,7 @@ EXAMPLE_PATH = (
     ROOT / "contracts" / "vehicle_position.example.json"
 )
 
-BROKER = "localhost:9092"
-TOPIC = "positions_vehicules_test"
+BROKER = os.getenv("KAFKA_TEST_BOOTSTRAP_SERVERS", "127.0.0.1:9092")
 
 
 # ============================================================
@@ -31,6 +32,12 @@ TOPIC = "positions_vehicules_test"
 # ============================================================
 
 def test_kafka_publish_consume():
+    topic = f"il14-vehicle-test-{uuid.uuid4().hex}"
+    admin = KafkaAdminClient(bootstrap_servers=BROKER)
+    try:
+        admin.create_topics([NewTopic(topic, 3, 1)])
+    finally:
+        admin.close()
 
     # STEP 1: Load JSON Schema
     schema = json.loads(
@@ -70,7 +77,7 @@ def test_kafka_publish_consume():
 
     try:
         # STEP 4: Subscribe to the test topic
-        consumer.subscribe([TOPIC])
+        consumer.subscribe([topic])
 
         # Wait until partitions are assigned
         deadline = time.monotonic() + 15
@@ -108,7 +115,7 @@ def test_kafka_publish_consume():
 
         # STEP 6: Publish event
         metadata = producer.send(
-            TOPIC,
+            topic,
             key=event["vehicle_id"],
             value=event
         ).get(timeout=15)

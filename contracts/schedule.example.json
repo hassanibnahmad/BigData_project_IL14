@@ -1,0 +1,13 @@
+{
+  "source": "MBTA",
+  "schedule_id": "schedule-example",
+  "service_date": "2026-11-21",
+  "route_id": "66",
+  "trip_id": "example-trip",
+  "stop_id": "1195",
+  "stop_sequence": 4,
+  "scheduled_arrival": "2026-11-22T00:04:00-05:00",
+  "scheduled_departure": null,
+  "event_id": "8b74f3ec096f51c8c9d1b133a1ea1734e9113b6aab93e684d5e97a17ee9dd75b",
+  "ingested_at": "2026-11-22T05:02:00+00:00"
+}

@@ -22,7 +22,7 @@ services:
 
       KAFKA_ADVERTISED_LISTENERS: >-
         INTERNAL://kafka:29092,
-        LOCAL://localhost:9092,
+        LOCAL://127.0.0.1:9092,
         REMOTE://100.105.157.123:39092
 
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
