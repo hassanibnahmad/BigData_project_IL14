@@ -27,4 +27,6 @@ Use three independently scheduled workflows. Maintain one active writer per tabl
 
 Set max active runs to 1 per workflow and put Grafana refresh tasks in a shared Airflow pool of one slot. Both refresh callers use the same entry point. Bronze is a continuous service with its own restart policy. For a live demo, B may run C's continuous mode instead of scheduling the same Silver jobs. Pause `il14_silver` before switching modes and retain checkpoints.
 
+When using A's live MBTA V3 topics, include `predictions_arrets` and `horaires_theoriques` in Bronze. Run C's `--source mbta` stream alongside positions and any simulator stream. It uses `checkpoints/silver/mbta_live_v1` and C's two MBTA Silver staging tables. Pass `--stop-input mbta` to the hourly job. [Live Spark handoff](../../../spark/README.md#live-mbta-input-from-student-a)
+
 **Acceptance:** A malformed record lands in Bronze unchanged. Simulate a retry and confirm the raw object count is stable. C and D can write and read their respective Hudi tables over S3A. Restart the Silver workflow and confirm it resumes progress. Kill a bounded job and confirm Airflow reports failure and a later retry uses the prior checkpoint. When services run in separate containers, validate advertised Kafka listener and MinIO reachability from those containers.

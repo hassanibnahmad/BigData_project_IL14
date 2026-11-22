@@ -33,6 +33,8 @@ Kafka keys and values are UTF-8. Values are single JSON objects with no wrapping
 | `positions_vehicules` | `vehicle_id` | [Existing schema](../vehicle_position.schema.json) | Implemented producer |
 | `stop_events_v1` | `stop_key` | [Stop event schema](schemas/stop_event.schema.json) | Proposed v1 |
 
+For the live MBTA V3 deployment, A also publishes `predictions_arrets` (key `schedule_id` or `prediction_id` if unresolved) and `horaires_theoriques` (key `schedule_id`). Use the [prediction schema](../prediction.schema.json) and [schedule schema](../schedule.schema.json). C stages both topics and joins on the schedule ID, service date and trip/stop identity. The original `stop_events_v1` interface remains the simulator path. [Live Spark storage and launch settings](../../spark/README.md#live-mbta-input-from-student-a)
+
 ### Positions
 
 Keep the existing nine-field schema and producer behavior. The producer generates lowercase SHA-256 of the UTF-8 text `vehicle_id|route_id|trip_id|UTC_timestamp`. The example permits a different ID format. Consumers treat IDs as opaque. `vehicle_timestamp` is the position event time and `ingested_at` is when A normalized it. Coordinates are decimal degrees. Position data supports the map and movement analysis. It does not establish a stop arrival.

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MBTA matched stop delay (Silver)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schedule_id",
+    "service_date",
+    "route_id",
+    "trip_id",
+    "stop_id",
+    "stop_sequence",
+    "record_id",
+    "prediction_record_id",
+    "schedule_record_id",
+    "schedule_kafka_offset",
+    "prediction_id",
+    "vehicle_id",
+    "ingested_at",
+    "kafka_topic",
+    "kafka_partition",
+    "kafka_offset",
+    "kafka_timestamp",
+    "comparison",
+    "predicted_at",
+    "scheduled_at",
+    "delay_seconds"
+  ],
+  "properties": {
+    "schedule_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "route_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trip_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "prediction_record_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "schedule_record_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "schedule_kafka_offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "prediction_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vehicle_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "kafka_topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kafka_partition": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "kafka_offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "kafka_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "comparison": {
+      "type": "string",
+      "enum": [
+        "arrival",
+        "departure"
+      ]
+    },
+    "predicted_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "delay_seconds": {
+      "type": "integer"
+    }
+  }
+}

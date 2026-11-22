@@ -11,6 +11,7 @@ if __package__ in (None, ""):
 
 from pyspark.sql import functions as F
 
+from spark.mbta_live import stage_batch
 from spark.processing import process_positions, process_stops, read_gtfs
 from spark.storage import (
     SILVER_DELAYS, SILVER_POSITIONS, required_env, session, storage_root, upsert_hudi, write_quarantine,
@@ -20,6 +21,7 @@ SOURCES = {
     "positions": ("KAFKA_TOPIC", "positions_vehicules", SILVER_POSITIONS),
     "stops": ("KAFKA_STOP_TOPIC", "stop_events_v1", SILVER_DELAYS),
 }
+MBTA_CHECKPOINT = "silver/mbta_live_v1"
 
 
 def kafka_records(spark, bootstrap, topic):
@@ -41,20 +43,30 @@ def kafka_records(spark, bootstrap, topic):
 
 
 def start_stream(spark, *, source, trigger, root):
-    variable, default, table = SOURCES[source]
-    topic = os.environ.get(variable, default)
     bootstrap = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-    gtfs = read_gtfs(spark, required_env("IL14_GTFS_URI")) if source == "stops" else None
+    if source == "mbta":
+        predictions_topic = os.environ.get("KAFKA_PREDICTIONS_TOPIC", "predictions_arrets")
+        schedules_topic = os.environ.get("KAFKA_SCHEDULES_TOPIC", "horaires_theoriques")
+        if not predictions_topic or not schedules_topic or predictions_topic == schedules_topic:
+            raise ValueError("Configure distinct Kafka topics for MBTA predictions and schedules")
+        topic = f"{predictions_topic},{schedules_topic}"
+        table = MBTA_CHECKPOINT
+        gtfs = None
+    else:
+        variable, default, table = SOURCES[source]
+        topic = os.environ.get(variable, default)
+        gtfs = read_gtfs(spark, required_env("IL14_GTFS_URI")) if source == "stops" else None
 
     def process_batch(batch, epoch):
         batch = batch.persist()
         try:
-            if gtfs is None:
-                silver, rejected = process_positions(batch)
+            if source == "mbta":
+                stage_batch(spark, batch, root, predictions_topic=predictions_topic,
+                            schedules_topic=schedules_topic)
             else:
-                silver, rejected = process_stops(batch, gtfs)
-            upsert_hudi(silver, root, table, key="event_id", ordering="kafka_offset")
-            write_quarantine(spark, rejected, root)
+                silver, rejected = process_stops(batch, gtfs) if gtfs else process_positions(batch)
+                upsert_hudi(silver, root, table, key="event_id", ordering="kafka_offset")
+                write_quarantine(spark, rejected, root)
             print(f"Completed {source} batch {epoch}", flush=True)
         finally:
             batch.unpersist()
@@ -71,7 +83,7 @@ def start_stream(spark, *, source, trigger, root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", choices=SOURCES, required=True)
+    parser.add_argument("--source", choices=(*SOURCES, "mbta"), required=True)
     parser.add_argument("--trigger", choices=("available-now", "continuous"), default="available-now")
     parser.add_argument("--local-root", type=Path, help="Use an isolated local Hudi and checkpoint directory")
     args = parser.parse_args()
