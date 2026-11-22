@@ -13,7 +13,9 @@ from pyspark.sql import functions as F
 
 from spark.mbta_live import read_arrivals
 from spark.processing import route_hours
-from spark.storage import GOLD_HOURLY, SILVER_DELAYS, exists, session, storage_root, upsert_hudi, write_hudi
+from spark.storage import (
+    GOLD_HOURLY, SILVER_DELAYS, exists, read_hudi_snapshot, session, storage_root, upsert_hudi, write_hudi,
+)
 
 
 def utc_hour(text):
@@ -27,7 +29,7 @@ def utc_hour(text):
 
 def refresh_hours(spark, root, *, from_hour, to_hour, computed_at, stop_input="gtfs"):
     path = f"{root}/{SILVER_DELAYS}"
-    delays = spark.read.format("hudi").load(path) if exists(spark, path) else None
+    delays = read_hudi_snapshot(spark, path) if exists(spark, path) else None
     live = None
     if stop_input == "mbta":
         if delays is not None:
@@ -45,7 +47,7 @@ def refresh_hours(spark, root, *, from_hour, to_hour, computed_at, stop_input="g
     if live is None or not exists(spark, gold_path):
         return updated
     # A schedule correction can move the last matched stop outside its former hour.
-    old_live = spark.read.format("hudi").load(gold_path).where(
+    old_live = read_hudi_snapshot(spark, gold_path).where(
         (F.col("dataset_id") == "live")
         & (F.col("hour_start") >= F.lit(from_hour).cast("timestamp"))
         & (F.col("hour_start") < F.lit(to_hour).cast("timestamp"))

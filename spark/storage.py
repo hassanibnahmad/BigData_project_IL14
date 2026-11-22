@@ -56,6 +56,12 @@ def exists(spark, uri):
     return fs.exists(path)
 
 
+def read_hudi_snapshot(spark, uri):
+    # Hudi 1.1.1's column-statistics lookup can wait on Spark's cache lock
+    # while a broadcast join is materializing a cached snapshot.
+    return spark.read.format("hudi").option("hoodie.enable.data.skipping", "false").load(uri)
+
+
 def write_hudi(rows, root, table, *, key, ordering, operation):
     rows = rows.persist()
     try:

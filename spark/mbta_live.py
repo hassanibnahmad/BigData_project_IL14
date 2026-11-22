@@ -4,7 +4,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 from spark.processing import CONTRACTS, METADATA, cast_timestamps, decode_records, quarantine_rows, read_schema
-from spark.storage import exists, upsert_hudi, write_hudi, write_quarantine
+from spark.storage import exists, read_hudi_snapshot, upsert_hudi, write_hudi, write_quarantine
 
 SILVER_MBTA_SCHEDULES = "silver/mbta_schedules_v1"
 SILVER_MBTA_PREDICTIONS = "silver/mbta_predictions_v1"
@@ -75,7 +75,7 @@ def read_inputs(spark, root):
     paths = [f"{root}/{table}" for table in (SILVER_MBTA_PREDICTIONS, SILVER_MBTA_SCHEDULES)]
     if not all(exists(spark, path) for path in paths):
         return None
-    return [spark.read.format("hudi").load(path) for path in paths]
+    return [read_hudi_snapshot(spark, path) for path in paths]
 
 
 def refresh_matched_stops(spark, root, affected):
@@ -90,7 +90,7 @@ def refresh_matched_stops(spark, root, affected):
 
     path = f"{root}/{SILVER_MBTA_DELAYS}"
     if exists(spark, path):
-        old = spark.read.format("hudi").load(path).join(affected, list(JOIN_KEYS), "left_semi")
+        old = read_hudi_snapshot(spark, path).join(affected, list(JOIN_KEYS), "left_semi")
         obsolete = old.join(matched.select("record_id"), "record_id", "left_anti")
         write_hudi(obsolete.select(*matched.columns), root, SILVER_MBTA_DELAYS, key="record_id",
                    ordering="schedule_kafka_offset", operation="delete")
