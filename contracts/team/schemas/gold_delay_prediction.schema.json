@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "gold_delay_prediction",
+  "additionalProperties": false,
+  "required": [
+    "prediction_id",
+    "model_version",
+    "dataset_id",
+    "stop_key",
+    "route_id",
+    "trip_id",
+    "stop_id",
+    "stop_sequence",
+    "service_date",
+    "scheduled_arrival_at",
+    "forecast_at",
+    "predicted_delay_seconds",
+    "computed_at"
+  ],
+  "properties": {
+    "prediction_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^sim:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "stop_key": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "route_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trip_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "service_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "scheduled_arrival_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "forecast_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "predicted_delay_seconds": {
+      "type": "number"
+    },
+    "computed_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}

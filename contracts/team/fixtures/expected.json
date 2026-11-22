@@ -1,0 +1,145 @@
+{
+  "bronze_count": 8,
+  "quarantine": [
+    {
+      "kafka_topic": "stop_events_v1",
+      "kafka_partition": 0,
+      "kafka_offset": 5,
+      "error_code": "unmatched_schedule"
+    },
+    {
+      "kafka_topic": "stop_events_v1",
+      "kafka_partition": 0,
+      "kafka_offset": 6,
+      "error_code": "invalid_json"
+    }
+  ],
+  "silver_vehicle_positions_v1": [
+    {
+      "event_id": "9757edf830d653026b790f34b6d822926658421dc7cd5c0faec46898746b1677",
+      "source": "MBTA",
+      "vehicle_id": "demo-bus",
+      "route_id": "1",
+      "trip_id": "DEMO-T1",
+      "latitude": 42.343594,
+      "longitude": -71.086029,
+      "vehicle_timestamp": "2026-11-11T06:10:00Z",
+      "ingested_at": "2026-11-11T06:10:00Z",
+      "kafka_topic": "positions_vehicules",
+      "kafka_partition": 0,
+      "kafka_offset": 0,
+      "kafka_timestamp": "2026-11-11T06:10:00Z"
+    }
+  ],
+  "silver_stop_delays_v1": [
+    {
+      "event_id": "2ec4420ba09011eaa0d62e09915bc33fc4a37a803a9f5755368a068cd56e941b",
+      "dataset_id": "live",
+      "kind": "predicted",
+      "trip_id": "DEMO-T1",
+      "route_id": "1",
+      "stop_id": "DEMO-S1",
+      "stop_sequence": 2,
+      "service_date": "2026-11-10",
+      "stop_key": "2e94682116805c406eab413745da6c7103c8597b24ac403498d703f14ab8c8a6",
+      "event_time": "2026-11-11T05:55:00Z",
+      "arrival_at": "2026-11-11T06:22:00Z",
+      "ingested_at": "2026-11-11T05:55:00Z",
+      "kafka_topic": "stop_events_v1",
+      "kafka_partition": 0,
+      "kafka_offset": 0,
+      "kafka_timestamp": "2026-11-11T05:55:00Z",
+      "gtfs_snapshot_id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "scheduled_arrival_at": "2026-11-11T06:15:00Z",
+      "delay_seconds": 420
+    },
+    {
+      "event_id": "3a70130e2b484174a7eb3f9c94bd352f6c3edd15bedd241c73e5d9d81c4775b3",
+      "dataset_id": "live",
+      "kind": "predicted",
+      "trip_id": "DEMO-T1",
+      "route_id": "1",
+      "stop_id": "DEMO-S1",
+      "stop_sequence": 2,
+      "service_date": "2026-11-10",
+      "stop_key": "2e94682116805c406eab413745da6c7103c8597b24ac403498d703f14ab8c8a6",
+      "event_time": "2026-11-11T06:00:00Z",
+      "arrival_at": "2026-11-11T06:20:00Z",
+      "ingested_at": "2026-11-11T06:01:00Z",
+      "kafka_topic": "stop_events_v1",
+      "kafka_partition": 0,
+      "kafka_offset": 2,
+      "kafka_timestamp": "2026-11-11T06:01:00Z",
+      "gtfs_snapshot_id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "scheduled_arrival_at": "2026-11-11T06:15:00Z",
+      "delay_seconds": 300
+    },
+    {
+      "event_id": "5c74574373c3259f4e97bf1acd552728fe0a74a2d22d0e2b2142e2ef89b7c3cb",
+      "dataset_id": "live",
+      "kind": "predicted",
+      "trip_id": "DEMO-T1",
+      "route_id": "1",
+      "stop_id": "DEMO-S1",
+      "stop_sequence": 2,
+      "service_date": "2026-11-10",
+      "stop_key": "2e94682116805c406eab413745da6c7103c8597b24ac403498d703f14ab8c8a6",
+      "event_time": "2026-11-11T06:16:00Z",
+      "arrival_at": "2026-11-11T06:23:00Z",
+      "ingested_at": "2026-11-11T06:16:00Z",
+      "kafka_topic": "stop_events_v1",
+      "kafka_partition": 0,
+      "kafka_offset": 3,
+      "kafka_timestamp": "2026-11-11T06:16:00Z",
+      "gtfs_snapshot_id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "scheduled_arrival_at": "2026-11-11T06:15:00Z",
+      "delay_seconds": 480
+    },
+    {
+      "event_id": "56fd696f9d74a51bce8b142fab0fbcf6d24eddf97cedfe37e6e11e2fa438f397",
+      "dataset_id": "sim:demo-01",
+      "kind": "simulated",
+      "trip_id": "DEMO-T1",
+      "route_id": "1",
+      "stop_id": "DEMO-S1",
+      "stop_sequence": 2,
+      "service_date": "2026-11-10",
+      "stop_key": "7c4e7bb960594d99eca53109bdff694280230c97fc7ac2d2631d28e65aef93cd",
+      "event_time": "2026-11-11T06:13:00Z",
+      "arrival_at": "2026-11-11T06:13:00Z",
+      "ingested_at": "2026-11-11T06:13:00Z",
+      "kafka_topic": "stop_events_v1",
+      "kafka_partition": 0,
+      "kafka_offset": 4,
+      "kafka_timestamp": "2026-11-11T06:17:00Z",
+      "gtfs_snapshot_id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "scheduled_arrival_at": "2026-11-11T06:15:00Z",
+      "delay_seconds": -120
+    }
+  ],
+  "gold_route_hourly_v1": [
+    {
+      "metric_id": "cde1535966fde245377bc11da746754af1ba54f7dc8409577cd34e8356ec628f",
+      "dataset_id": "live",
+      "route_id": "1",
+      "hour_start": "2026-11-11T06:00:00Z",
+      "predicted_stop_count": 1,
+      "predicted_mean_delay_seconds": 300,
+      "simulated_stop_count": 0,
+      "simulated_mean_delay_seconds": null,
+      "computed_at": "2026-11-11T07:10:00Z"
+    },
+    {
+      "metric_id": "c151ec733a49460610fdcb89fef5677d5d935ea50c399266cdab77e329f5fb64",
+      "dataset_id": "sim:demo-01",
+      "route_id": "1",
+      "hour_start": "2026-11-11T06:00:00Z",
+      "predicted_stop_count": 0,
+      "predicted_mean_delay_seconds": null,
+      "simulated_stop_count": 1,
+      "simulated_mean_delay_seconds": -120,
+      "computed_at": "2026-11-11T07:10:00Z"
+    }
+  ],
+  "gold_delay_predictions_v1": []
+}
