@@ -29,3 +29,15 @@ airflow/logs/
 .idea/
 .DS_Store
 Thumbs.db
+# Testing and coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.bak
