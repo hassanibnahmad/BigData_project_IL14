@@ -4,7 +4,7 @@ from kafka_consumer import KafkaBronzeConsumer
 from bronze_writer import BronzeWriter
 
 
-KAFKA_BOOTSTRAP_SERVERS = "100.77.236.48:39092"
+KAFKA_BOOTSTRAP_SERVERS = "100.105.157.123:39092"
 
 TOPICS = [
     "predictions_arrets",

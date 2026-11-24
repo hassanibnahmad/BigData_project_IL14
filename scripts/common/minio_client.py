@@ -1,7 +1,7 @@
 import boto3
 from botocore.client import Config
 
-from config import (
+from scripts.common.config import (
     MINIO_ENDPOINT,
     MINIO_ACCESS_KEY,
     MINIO_SECRET_KEY,

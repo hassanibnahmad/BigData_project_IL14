@@ -1,0 +1,27 @@
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Silver Predictions Arrets",
+  "description": "Normalized schema for public transport stop predictions",
+  "type": "object",
+  "properties": {
+    "source": { "type": ["string", "null"] },
+    "prediction_id": { "type": ["string", "null"] },
+    "schedule_id": { "type": ["string", "null"] },
+    "service_date": { "type": ["string", "null"], "format": "date" },
+    "route_id": { "type": ["string", "null"] },
+    "trip_id": { "type": ["string", "null"] },
+    "stop_id": { "type": ["string", "null"] },
+    "stop_sequence": { "type": ["integer", "null"] },
+    "vehicle_id": { "type": ["string", "null"] },
+    "predicted_arrival": { "type": ["string", "null"], "format": "date-time" },
+    "predicted_departure": { "type": ["string", "null"], "format": "date-time" },
+    "event_id": { "type": ["string", "null"] },
+    "ingested_at": { "type": ["string", "null"], "format": "date-time" },
+    "kafka_topic": { "type": ["string", "null"] },
+    "kafka_partition": { "type": ["integer", "null"] },
+    "kafka_offset": { "type": ["integer", "null"] },
+    "kafka_timestamp": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "additionalProperties": false
+}

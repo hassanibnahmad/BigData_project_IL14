@@ -1,6 +1,15 @@
 import json
+import sys
+from pathlib import Path
 from datetime import datetime, timezone
 from io import BytesIO
+
+# Locate the project root
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Shared modules
+COMMON_PATH = PROJECT_ROOT / "scripts" / "common"
+sys.path.append(str(COMMON_PATH))
 
 from minio_client import get_minio_client
 from config import MINIO_BUCKET
