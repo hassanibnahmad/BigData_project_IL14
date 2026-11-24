@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "bronze_record",
+  "additionalProperties": false,
+  "required": [
+    "kafka_topic",
+    "kafka_partition",
+    "kafka_offset",
+    "kafka_timestamp",
+    "key_b64",
+    "value_b64"
+  ],
+  "properties": {
+    "kafka_topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kafka_partition": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "kafka_offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "kafka_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "key_b64": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "contentEncoding": "base64"
+    },
+    "value_b64": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "contentEncoding": "base64"
+    }
+  }
+}

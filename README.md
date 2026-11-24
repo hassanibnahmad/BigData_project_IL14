@@ -1,4 +1,15 @@
-# BigData IL-14 | Student A ingestion
+# IL-14 — Suivi des transports publics en temps réel
+
+Start with the [team integration contract](contracts/team/README.md) for the shared data flow, schemas, offline fixture, and integration process.
+
+| Team member | Responsibility | Guide |
+|---|---|---|
+| A | GTFS, simulator and Kafka | [Student A](contracts/team/student-a/README.md) |
+| B | MinIO, Hudi and Airflow | [Student B](contracts/team/student-b/README.md) |
+| C | Spark Structured Streaming and Spark SQL | [Student C](contracts/team/student-c/README.md) |
+| D | MLlib and Grafana | [Student D](contracts/team/student-d/README.md) |
+
+## Student A ingestion
 
 MBTA V3 routes 1, 66 and 77 flow through Python normalization, Draft 2020-12 validation and deduplication into Apache Kafka 3.9.1. Run the vehicle and stop-time producers in separate terminals. Spark can consume the resulting JSON values and perform the delay analysis.
 
@@ -8,7 +19,7 @@ MBTA V3 routes 1, 66 and 77 flow through Python normalization, Draft 2020-12 val
 | `predictions_arrets` | 3 / 1 | `schedule_id`, falling back to `prediction_id` | [Schema](contracts/prediction.schema.json) / [example](contracts/prediction.example.json) |
 | `horaires_theoriques` | 3 / 1 | `schedule_id` | [Schema](contracts/schedule.schema.json) / [example](contracts/schedule.example.json) |
 
-## Start on Windows PowerShell
+### Start on Windows PowerShell
 
 Run from the repository root. Copy the example only when preparing a new environment. Add an optional MBTA API key to the local `.env`.
 
@@ -46,7 +57,7 @@ docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server k
 
 For an existing Windows `.env`, set `KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092` or override it in the terminal as above. The Docker loopback listener and its advertised address both use IPv4. The Tailscale listener has been tested from the broker host. Student B must run the Python check from their PC to verify that network path.
 
-## Stop-time ingestion and joining
+### Stop-time ingestion and joining
 
 - Configuration uses `MBTA_API_URL`, `MBTA_API_KEY`, `MBTA_ROUTES`, `MBTA_POLL_INTERVAL` (20 seconds between polls by default) and `MBTA_SCHEDULE_REFRESH_INTERVAL` (21,600 seconds by default). API reads follow all next links and retry timeouts, connection errors and transient HTTP responses. HTTP 429 retries honor `Retry-After`.
 - The background schedule refresh fetches the previous and current Boston dates at startup, when the Boston date changes, and after the configured interval. Date-filtered MBTA schedules carry the requested **service date**, even for stops after midnight. Each successful refresh replaces the in-memory lookup. For a finite run that fetches schedules before predictions, start the stop-time producer with `--once`. [MBTA V3 API reference](https://api-v3.mbta.com/docs/swagger/index.html)
@@ -55,7 +66,7 @@ For an existing Windows `.env`, set `KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092` or 
 - Retain one schedule version per `schedule_id`, `service_date`, route, trip, stop and sequence. Join predictions on these same fields. Compare arrival with arrival or departure with departure when both are present. Defer predictions with unresolved keys. Treat these events as estimates and retain ingestion timestamps and Kafka partition/offset to help trace updates. Ordering is per partition.
 - The stop-time producer tracks up to 100,000 acknowledged entity versions per topic in memory. Changes to prediction timestamps or other normalized fields are published. Restart, cache eviction and ambiguous acknowledgments can produce repeats. The stable content hash in `event_id` excludes `ingested_at`. A previous prediction state can reappear as a legitimate update, so a global distinct on `event_id` can hide a reversion.
 
-## Verify and test
+### Verify and test
 
 ```powershell
 $py = '.\.venv\Scripts\python.exe'

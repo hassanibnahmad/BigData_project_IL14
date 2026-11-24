@@ -1,0 +1,3 @@
+trip_id,arrival_time,departure_time,stop_id,stop_sequence
+DEMO-T1,24:55:00,24:55:00,DEMO-S0,1
+DEMO-T1,25:15:00,25:15:00,DEMO-S1,2

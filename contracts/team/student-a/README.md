@@ -1,0 +1,19 @@
+# A — GTFS, simulator and Kafka
+
+**Owns Sections 1 and 2.** Work in `simulator/`, `kafka_ingestion/` and Kafka portions of Compose. The [data contract](../data.md) defines the wire payloads.
+
+## Your handoff
+
+You turn MBTA data into inputs that B and C can use. Both read your Kafka topics. B archives the original messages, and C joins stop events to the schedule. The existing `positions_vehicules` stream supplies GPS locations. The new `stop_events_v1` stream supplies stop-level estimates and simulated arrivals.
+
+Start with the offline fixture and a local broker profile. You can build and verify the producer before the team chooses a shared host. For the handoff, give B and C the GTFS snapshot manifest, the topic and key definitions, the bootstrap address for their runtime, and a sample message from each topic. Give D the simulator run ID, seed, and active service dates. Use the shared [data contract](../data.md), [deployment settings](../integration.md), and [offline fixture](../fixtures/README.md).
+
+## Implementation order
+
+1. Obtain the [MBTA GTFS ZIP](https://cdn.mbta.com/MBTA_GTFS.zip). Hand B the extracted files and a `manifest.json` containing `source_url`, `sha256` (hash of original ZIP), and `retrieved_at` (UTC timestamp). Give C the snapshot ID and identify the valid service date. Validate the routes, trips, stop times and service calendar joins.
+2. Keep the existing position topic, vehicle key and schema. Use the MBTA API for the current positions. Start with bus routes 1, 66 and 77, configurable as `MBTA_ROUTES`. Preserve string IDs and UTC timestamps.
+3. Poll the [MBTA Trip Updates JSON feed](https://cdn.mbta.com/realtime/TripUpdates.json), normalize eligible stops using that same GTFS snapshot, and publish to `stop_events_v1`. Publish only bus routes in the configured filter. Log counts of published, duplicate, unmatched, and unsupported records. Publish one normalized JSON record per stop update. Keep malformed records from aborting a poll. Retry transient acquisition and broker failures with bounded backoff. Surface exhausted delivery failures and handle sends that have already been queued.
+4. Implement a GTFS-driven demo simulator using the same static trip/stop identifiers. Given a run ID, service date and seed, replay several concurrently active scheduled bus trips with repeatable delay variation and increasing arrival times within each trip. Publish the simulated stop occurrences on `stop_events_v1` using `sim:<run-id>`. Provide `python -m simulator.replay --gtfs-dir <directory> --run-id <id> --seed <integer> --service-date <YYYY-MM-DD> [--fast]`. Allow repeated `--service-date` flags. In fast mode advance the simulated clock directly to the next event and publish through Kafka without waiting for wall-clock time. Deliver five active service dates for one repeatable simulator run, its seed, and the GTFS snapshot and route filter for D's chronological split. Use a new run ID for each different input set.
+5. Provision both Kafka topics explicitly and make host/advertised addresses configurable. Publish the runtime-specific bootstrap names via [deployment settings](../integration.md). Let B and C test through Kafka metadata and a real consumed record from their actual runtimes.
+
+**Acceptance:** From a clean broker, a valid event on each topic is consumable with the expected key/schema. A malformed upstream item does not block subsequent valid items. The same feed revision has the same stop event ID. Use a role-local mock Trip Updates response for a trip with the same stop ID at two different sequences. A repeated stop resolves by sequence, while an ambiguous stop ID alone is skipped. A simulator replay with the same inputs produces the same event IDs. Report the live match count for selected routes and sample service dates so C knows whether live mode is usable.

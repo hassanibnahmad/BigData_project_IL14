@@ -1,0 +1,30 @@
+{
+  "prediction": {
+    "event_id": "961d546a4dc16b98b976df8b953f42ce59cefc3b93671654ec9dc24da3b7d7cf",
+    "source": "MBTA",
+    "prediction_id": "prediction-78982154-64000-36-66",
+    "schedule_id": "schedule-78982154-64000-36",
+    "service_date": "2026-11-21",
+    "route_id": "66",
+    "trip_id": "78982154",
+    "stop_id": "64000",
+    "stop_sequence": 36,
+    "vehicle_id": "y1851",
+    "predicted_arrival": "2026-11-21T14:44:21-05:00",
+    "predicted_departure": null,
+    "ingested_at": "2026-11-21T17:58:07.387409+00:00"
+  },
+  "schedule": {
+    "event_id": "5e28f39ae29735c2c949aaef94aecf33b7c057aadd279abd8c70aa0ac7f6c9f6",
+    "source": "MBTA",
+    "schedule_id": "schedule-78982154-64000-36",
+    "service_date": "2026-11-21",
+    "route_id": "66",
+    "trip_id": "78982154",
+    "stop_id": "64000",
+    "stop_sequence": 36,
+    "scheduled_arrival": "2026-11-21T14:55:00-05:00",
+    "scheduled_departure": null,
+    "ingested_at": "2026-11-21T17:57:57.479364+00:00"
+  }
+}
